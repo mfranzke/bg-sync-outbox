@@ -28,8 +28,8 @@ const syncOutbox = (db) => {
     getAllFormsFromOutbox(db)
     .then(forms => Promise.all(
       forms.map(form => {
-        const formData = repackFormData(form)
-        return postFormToServer(formData)
+        const formData = repackFormData(form.formData)
+        return postFormToServer(form.url, formData, form.method)
         .then(response => {
           deleteFormFromOutbox(db, form.id);
           return Promise.resolve(response);

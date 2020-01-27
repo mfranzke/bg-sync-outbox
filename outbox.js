@@ -10,15 +10,14 @@
 const IDB_VERS = 1;
 const DB_NAME = 'outbox'
 const OBJ_STORE_NAME = 'forms-v' + IDB_VERS;
-const POST_URL = 'http://localhost:3000/posts';
 
 const outboxIsSupported = ('serviceWorker' in navigator && 'SyncManager' in window);
 
 // Post form data to server over the network.
-const postFormToServer = (formData) => {
+const postFormToServer = (url, formData, method = 'POST') => {
   return new Promise(function(resolve, reject) {
-    fetch(POST_URL, {
-      method: 'POST',
+    fetch(url, {
+      method: method,
       body: formData
     })
     .then(response => {
@@ -58,11 +57,16 @@ const openOutbox = () => {
 
 // Add Form Data to Outbox so it can be sync'ed with server when
 // connectivity is restored.
-const addFormToOutbox = (db, formData) => {
+const addFormToOutbox = (db, url, formData, method) => {
   return new Promise(function(resolve, reject) {
     const formArray = unpackFormData(formData);
+    const dbData = {
+      url: url,
+      formData: formArray,
+      method: method
+    }
     const store = db.transaction(OBJ_STORE_NAME, 'readwrite').objectStore(OBJ_STORE_NAME);
-    const request = store.add(formArray);
+    const request = store.add(dbData);
     request.onerror = function(event) {
       reject(new Error(event.target.errorcode))
     };
